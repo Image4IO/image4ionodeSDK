@@ -3,8 +3,8 @@ import 'mocha';
 import * as Models from './Models';
 import * as chai from 'chai';
 
-var apiKey = 'OlNgDAcLoBesIJMz6GTDhg==';
-var apiSecret = '6YRWZGhOMmOPrLyMBVyazUmnZx6K0B23AuvnUeBCD+M=';
+var apiKey = 'apiKey(Username)';
+var apiSecret = 'apiSecret(Password)';
 
 var api = new Image4ioAPI.Image4ioAPI(apiKey, apiSecret);
 
@@ -19,7 +19,7 @@ describe('Image4IOAPITest', () => {
     })
     it('UploadTest', () => {
         var uploadReq = new Models.UploadFilesRequestModel("Test", true, true);
-        uploadReq.Add("./Pattern.jpg", "Pattern.jpg", "Pattern.jpg");
+        uploadReq.Add("./Upload_image.jpg", "Upload_image.jpg", "Upload_image.jpg");
         var uploadRes = api.Upload(uploadReq);
         return uploadRes.then(response => {
             chai.expect(response.uploadedFiles[0].status == "Uploaded" || response.uploadedFiles[0].status == "Overwrited").to.equal(true);
@@ -28,7 +28,7 @@ describe('Image4IOAPITest', () => {
         })
     })
     it('FetchTest', () => {
-        var fetchRes = api.Fetch(new Models.FetchRequestModel("imageURL", "Test"));
+        var fetchRes = api.Fetch(new Models.FetchRequestModel("imageURLtoBeFetched", "DestinationFolder"));
         return fetchRes.then(response => {
             chai.expect(response.fetchedFile.status).of.equals("Fetched");
         }).catch(error => {
@@ -36,7 +36,7 @@ describe('Image4IOAPITest', () => {
         })
     })
     it('CopyTest', () => {
-        var copyRes = api.Copy(new Models.CopyRequestModel("/Test/test.png", "Test4"));
+        var copyRes = api.Copy(new Models.CopyRequestModel("/SourceFolder/FileToBeCopied.png", "DestinationFolder"));
         return copyRes.then(response => {
             chai.expect(response.copiedFile.status).of.equals("Copied");
         }).catch(error => {
@@ -44,7 +44,7 @@ describe('Image4IOAPITest', () => {
         })
     })
     it('MoveTest', () => {
-        var moveRes = api.Move(new Models.MoveRequestModel("/Test/test.png", "Test3"));
+        var moveRes = api.Move(new Models.MoveRequestModel("/SourceFolder/FileToBeMoved.png", "DestinationFolder"));
         return moveRes.then(response => {
             chai.expect(response.movedFile.status).of.equals("Moved");
         }).catch(error => {
@@ -52,7 +52,7 @@ describe('Image4IOAPITest', () => {
         })
     })
     it('ListTest', () => {
-        var listFolderRes = api.ListFolder(new Models.ListFolderRequestModel("Test"));
+        var listFolderRes = api.ListFolder(new Models.ListFolderRequestModel("FolderToBeListed"));
         return listFolderRes.then(response => {
             chai.expect(response.files.length).greaterThan(0);
         }).catch(error => {
@@ -60,7 +60,7 @@ describe('Image4IOAPITest', () => {
         })
     })
     it('CreateTest', () => {
-        var createRes = api.CreateFolder(new Models.CreateFolderRequestModel("Test1"));
+        var createRes = api.CreateFolder(new Models.CreateFolderRequestModel("FolderToBeCreated"));
         return createRes.then(response => {
             chai.expect(response.createdFolder.status == "Created" || response.createdFolder.status == "AlredyExist").to.equal(true);
         }).catch(error => {
@@ -68,7 +68,7 @@ describe('Image4IOAPITest', () => {
         })
     })
     it('DeleteFileTest', () => {
-        var deleteFileRes = api.DeleteFile(new Models.DeleteFileRequestModel("/Test/Pattern.jpg"));
+        var deleteFileRes = api.DeleteFile(new Models.DeleteFileRequestModel("/SourceFolder/Delete_file.jpg"));
         return deleteFileRes.then(response => {
             chai.expect(response.deletedFile.status).of.equals("Deleted");
         }).catch(error => {
@@ -76,7 +76,7 @@ describe('Image4IOAPITest', () => {
         })
     })
     it('DeleteFolderTest', () => {
-        var deleteFolderRes = api.DeleteFolder(new Models.DeleteFolderRequestModel("Test1"));
+        var deleteFolderRes = api.DeleteFolder(new Models.DeleteFolderRequestModel("FolderToBeDeleted"));
         return deleteFolderRes.then(response => {
             chai.expect(response.deletedFolder.status).of.equals("Deleted");
         }).catch(error => {
