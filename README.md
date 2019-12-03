@@ -1,5 +1,8 @@
 ![altText](https://cdn.image4.io/i4io/logo-dark-side.png "Logo")
 
+![altText](https://img.shields.io/github/package-json/v/Image4IO/image4ionodeSDK "License") 
+![altText](https://img.shields.io/github/license/Image4IO/image4ionodeSDK "License") ![altText](https://img.shields.io/github/languages/top/Image4IO/image4ionodeSDK "Lang")
+
 # Image4ioNodeSDK 
 image4io is a cloud service where your images are uploaded, moved, copied, fetched, deleted.
 
