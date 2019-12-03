@@ -1,6 +1,6 @@
 {
   "name": "image4ionodejssdk",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Node.js SDK for image4.io",
   "main": "out/Image4ioAPI.js",
   "scripts": {
