@@ -2,14 +2,26 @@
   "name": "image4ionodejssdk",
   "version": "1.0.0",
   "description": "Node.js SDK for image4.io",
-  "main": "index.js",
+  "main": "out/Image4ioAPI.js",
   "scripts": {
     "tsc": "tsc",
     "dev": "nodemon index.js",
-    "test": "mocha -r ts-node/register src/**/*.spec.ts"
+    "test": "mocha ./out/Test.js",
+    "build": "tsc"
   },
-  "author": "",
-  "license": "ISC",
+  "types": "out/Image4ioAPI.d.ts",
+  "prepare": "npm run build",
+  "prepublish": "tsc",
+  "author": "Atakan Atamert",
+  "license": "MIT",
+  "keywords": [
+    "image4io",
+    "Image4io",
+    "Image4io SDK",
+    "Image4io API",
+    "promise",
+    "async"
+  ],
   "dependencies": {
     "@types/express": "^4.17.2",
     "@types/form-data": "^2.5.0",
@@ -27,5 +39,13 @@
     "mocha": "^6.2.2",
     "nodemon": "^1.19.4",
     "ts-node": "^8.5.4"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Image4IO/image4ionodeSDK.git"
+  },
+  "homepage": "https://image4.io/en",
+  "files": [
+    "out /**/*"
+  ]
 }
