@@ -1,5 +1,5 @@
 {
-  "name": "image4ionodejssdk",
+  "name": "@image4io/image4ionodejssdk",
   "version": "0.1.0",
   "description": "Node.js SDK for image4.io",
   "main": "out/Image4ioAPI.js",
@@ -19,6 +19,7 @@
     "Image4io",
     "Image4io SDK",
     "Image4io API",
+    "image",
     "promise",
     "async"
   ],
