@@ -2,8 +2,6 @@ import * as request from 'request-promise';
 import * as Models from './Models';
 import { createReadStream } from 'fs';
 
-// Create a new express application instance
-
 export class Image4ioAPI {
     public baseUrl: string = "https://api.image4.io";
     public upload: Object = {};
@@ -135,9 +133,7 @@ export class Image4ioAPI {
                 throw new Error("Folder path is required.")
             } else {
                 return await request.delete(this.baseUrl + '/v0.1/deletefolder?path=' + model.Path, function (err, res, body) {
-                    //console.log(body);
                     if (res.statusCode == 200) {
-                        //console.log(res.body);
                         return;
                     } else {
                         throw new Error("JSON Parse failed.")
@@ -167,9 +163,7 @@ export class Image4ioAPI {
                 throw new Error("Folder path is required.")
             } else {
                 return await request.delete(this.baseUrl + '/v0.1/deletefile?name=' + model.Name, function (err, res, body) {
-                    //console.log(body);
                     if (res.statusCode == 200) {
-                        //console.log(res.body);
                         return;
                     } else {
                         throw new Error("JSON Parse failed.")
@@ -199,9 +193,7 @@ export class Image4ioAPI {
                 throw new Error("Folder path is required.")
             } else {
                 return await request.post(this.baseUrl + '/v0.1/CreateFolder?path=' + model.Path, function (err, res, body) {
-                    //console.log(body);
                     if (res.statusCode == 200) {
-                        //console.log(res.body);
                         return;
                     } else {
                         throw new Error("JSON Parse failed.")
@@ -232,9 +224,7 @@ export class Image4ioAPI {
                 throw new Error("Target path parameter is required.")
             } else {
                 return await request.post(this.baseUrl + '/v0.1/fetch?from=' + model.From + "&target_path=" + model.TargetPath, function (err, res, body) {
-                    //console.log(body);
                     if (res.statusCode == 200) {
-                        //console.log(res.body);
                         return;
                     } else {
                         throw new Error("JSON Parse failed.")
@@ -263,9 +253,7 @@ export class Image4ioAPI {
                 throw new Error("Path parameter is required.")
             } else {
                 return await request.get(this.baseUrl + '/v0.1/listfolder?path=' + model.Path, function (err, res, body) {
-                    //console.log(body);
                     if (res.statusCode == 200) {
-                        //console.log(res.body);
                         return;
                     } else {
                         throw new Error("JSON Parse failed.")
@@ -296,9 +284,7 @@ export class Image4ioAPI {
                 throw new Error("Target path is required.")
             } else {
                 return await request.put(this.baseUrl + '/v0.1/move?source=' + model.Source + "&target_path=" + model.TargetPath, function (err, res, body) {
-                    //console.log(body);
                     if (res.statusCode == 200) {
-                        //console.log(res.body);
                         return;
                     } else {
                         throw new Error("JSON Parse failed.")
