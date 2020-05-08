@@ -1,4 +1,4 @@
-export default class ListFolderRequestModel {
+export default class PurgeRequest {
     private path: string = "";
 
     constructor(path: string) {

@@ -1,4 +1,4 @@
-export default class UploadFilesRequestModel {
+export default class UploadImagesRequestModel {
     private useFilename: boolean = false;
     private overwrite: boolean = false;
     private path: string = "";

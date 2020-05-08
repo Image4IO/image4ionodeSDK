@@ -1,4 +1,4 @@
-export default class GetImageDetailsRequestModel {
+export default class DeleteStreamRequest {
     private name: string = "";
 
     constructor(name: string) {

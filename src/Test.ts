@@ -5,7 +5,7 @@ import * as chai from 'chai';
 
 var apiKey = 'apiKey(Username)';
 var apiSecret = 'apiSecret(Password)';
-
+/*
 var api = new Image4ioAPI.Image4ioAPI(apiKey, apiSecret);
 
 describe('Image4IOAPITest', () => {
@@ -18,7 +18,7 @@ describe('Image4IOAPITest', () => {
         })
     })
     it('UploadTest', () => {
-        var uploadReq = new Models.UploadFilesRequestModel("Test", true, true);
+        var uploadReq = new Models.UploadImagesRequestModel("Test", true, true);
         uploadReq.Add("./Upload_image.jpg", "Upload_image.jpg", "Upload_image.jpg");
         var uploadRes = api.Upload(uploadReq);
         return uploadRes.then(response => {
@@ -84,4 +84,4 @@ describe('Image4IOAPITest', () => {
         })
     })
 
-})
+})*/

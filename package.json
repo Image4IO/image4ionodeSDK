@@ -1,6 +1,6 @@
 {
   "name": "@image4io/image4ionodejssdk",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Node.js SDK for image4.io",
   "main": "out/Image4ioAPI.js",
   "scripts": {
@@ -37,8 +37,8 @@
     "@types/request-promise": "^4.1.45",
     "chai": "^4.2.0",
     "chai-http": "^4.3.0",
-    "mocha": "^6.2.2",
-    "nodemon": "^1.19.4",
+    "mocha": "^7.1.2",
+    "nodemon": "^2.0.3",
     "ts-node": "^8.5.4"
   },
   "repository": {

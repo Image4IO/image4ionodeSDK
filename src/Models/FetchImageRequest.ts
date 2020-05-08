@@ -1,10 +1,12 @@
 export default class FetchRequestModel {
     private from: string = "";
     private targetPath: string = "";
+    private useFilename: boolean=false;
 
-    constructor(from: string, targetPath: string) {
+    constructor(from: string, targetPath: string, useFilename:boolean) {
         this.from = from;
         this.targetPath = targetPath;
+        this.useFilename=useFilename;
     }
 
     public get From(): string {
@@ -13,6 +15,10 @@ export default class FetchRequestModel {
 
     public get TargetPath(): string {
         return this.targetPath;
+    }
+
+    public get UseFilename():boolean{
+        return this.useFilename;
     }
 
 }

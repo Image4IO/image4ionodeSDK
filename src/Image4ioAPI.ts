@@ -2,7 +2,7 @@ import * as request from 'request-promise';
 import * as Models from './Models';
 import { createReadStream } from 'fs';
 
-export class Image4ioAPI {
+export class Image4ioClient {
     public baseUrl: string = "https://api.image4.io";
     public upload: Object = {};
     public apiKey: string = "";
@@ -13,9 +13,9 @@ export class Image4ioAPI {
         this.apiSecret = apiSecret;
     }
 
-    public Upload(model: Models.UploadFilesRequestModel) {
+    public UploadImage(model: Models.UploadImagesRequest) {
         try {
-            return this.UploadAsync(model).then(response => {
+            return this.UploadImageAsync(model).then(response => {
                 return JSON.parse(String(response));
             }).catch(exception => {
                 throw exception;
@@ -24,70 +24,35 @@ export class Image4ioAPI {
             throw exception;
         }
     }
-    private async UploadAsync(model: Models.UploadFilesRequestModel) {
+    private async UploadImageAsync(model: Models.UploadImagesRequest) {
         try {
-            if (model.Path == null || !model.Path.trim()) {
-                throw new Error("Path parameter is required.")
-            } else {
-                var formData = {
-                    files: Array(),
-                    overwrite: String(model.Overwrite),
-                    use_filename: String(model.UseFilename),
-                };
+            var formData = {
+                files: Array(),
+                path : model.Path,
+                overwrite: String(model.Overwrite),
+                useFilename: String(model.UseFilename),
+            };
 
-                model.Files.forEach(file => {
-                    formData.files.push(createReadStream(file.Data));
-                });
-
-                return await request.post({ url: this.baseUrl + '/v0.1/upload?path=' + model.Path, formData: formData }, function (req, res, next) {
-                    if (res.statusCode == 200) {
-                        return;
-                    } else {
-                        throw new Error("JSON Parse failed. Status code " + res.statusCode);
-                    }
-                }).auth(this.apiKey, this.apiSecret, true);
-            }
-        } catch (error) {
-            throw error;
-        }
-    }
-
-
-    public Copy(model: Models.CopyRequestModel) {
-        try {
-            return this.CopyAsync(model).then(response => {
-                return JSON.parse(String(response));
-            }).catch(exception => {
-                throw exception;
+            model.Files.forEach(file => {
+                formData.files.push(createReadStream(file.Data));
             });
-        } catch (exception) {
-            throw exception;
-        }
-        this.CopyAsync(model);
-    }
-    private async CopyAsync(model: Models.CopyRequestModel) {
-        try {
-            if (model.Source == null || !model.Source.trim()) {
-                throw new Error("Source parameter is required.")
-            }
-            else {
-                return await request.put(this.baseUrl + '/v0.1/copy?source=' + model.Source + '&target_path=' + model.TargetPath, function (err, res, body) {
-                    if (res.statusCode == 200) {
-                        return;
-                    } else {
-                        throw new Error("JSON Parse failed. Status code " + res.statusCode);
-                    }
-                }).auth(this.apiKey, this.apiSecret, true);
-            }
+
+            return await request.post({ url: this.baseUrl + '/v1.0/uploadImage', formData: formData }, function (err, res, body) {
+                if (res.statusCode == 200) {
+                    return body;
+                } else {
+                    throw new Error("Upload image failed. Status code: " + res.statusCode + "; Error(s):" + JSON.stringify(body.errors));
+                }
+            }).auth(this.apiKey, this.apiSecret, true);
         } catch (error) {
             throw error;
         }
     }
 
 
-    public GetImageDetails(model: Models.GetImageDetailsRequestModel) {
+    public CopyImage(model: Models.CopyImageRequest) {
         try {
-            return this.GetImageDetailsAsync(model).then(response => {
+            return this.CopyImageAsync(model).then(response => {
                 return JSON.parse(String(response));
             }).catch(exception => {
                 throw exception;
@@ -96,27 +61,69 @@ export class Image4ioAPI {
             throw exception;
         }
     }
-    private async GetImageDetailsAsync(model: Models.GetImageDetailsRequestModel) {
+    private async CopyImageAsync(model: Models.CopyImageRequest) {
         try {
-            if (model.Name == null || !model.Name.trim()) {
-                throw new Error("Name parameter is required.")
-            } else {
-                return await request.get(this.baseUrl + '/v0.1/get?name=' + model.Name, function (err, res, body) {
-                    if (res.statusCode == 200) {
-                        return;
-                    } else {
-                        throw new Error("JSON Parse failed.")
-                    }
-
-                }).auth(this.apiKey, this.apiSecret, true);
+            
+            var options={
+                method:"PUT",
+                uri:this.baseUrl + '/v1.0/copyImage',
+                body: {
+                    source: model.Source,
+                    targetPath : model.TargetPath,
+                    name:model.Name,
+                    useFilename:model.UseFilename,
+                    overwrite:model.Overwrite
+                },
+                json:true
             }
+
+            return await request.put(options, function (err, res, body) {
+                if (res.statusCode == 200) {
+                    return body;
+                } else {
+                    throw new Error("Copy image failed. Status code: " + res.statusCode + "; Error(s):" + JSON.stringify(body.errors));
+                }
+            }).auth(this.apiKey, this.apiSecret, true);
         } catch (error) {
             throw error;
         }
     }
 
+    public GetImages(model: Models.GetImagesRequest) {
+        try {
+            return this.GetImagesAsync(model).then(response => {
+                return JSON.parse(String(response));
+            }).catch(exception => {
+                throw exception;
+            });
+        } catch (exception) {
+            throw exception;
+        }
+    }
+    private async GetImagesAsync(model: Models.GetImagesRequest) {
+        try {
+            var options={
+                method:"GET",
+                uri:this.baseUrl + '/v1.0/images',
+                body: {
+                    names: model.Names
+                },
+                json:true
+            }
+            return await request.get(options, function (err, res, body) {
+                if (res.statusCode == 200) {
+                    return body;
+                } else {
+                    throw new Error("Get Images failed. Status code: " + res.statusCode + "; Error(s):" + JSON.stringify(body.errors));
+                }
 
-    public DeleteFolder(model: Models.DeleteFolderRequestModel) {
+            }).auth(this.apiKey, this.apiSecret, true);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    public DeleteFolder(model: Models.DeleteFolderRequest) {
         try {
             return this.DeleteFolderAsync(model).then(response => {
                 return JSON.parse(String(response));
@@ -127,28 +134,32 @@ export class Image4ioAPI {
             throw exception;
         }
     }
-    private async DeleteFolderAsync(model: Models.DeleteFolderRequestModel) {
+    private async DeleteFolderAsync(model: Models.DeleteFolderRequest) {
         try {
-            if (model.Path == null || !model.Path.trim()) {
-                throw new Error("Folder path is required.")
-            } else {
-                return await request.delete(this.baseUrl + '/v0.1/deletefolder?path=' + model.Path, function (err, res, body) {
-                    if (res.statusCode == 200) {
-                        return;
-                    } else {
-                        throw new Error("JSON Parse failed.")
-                    }
-                }).auth(this.apiKey, this.apiSecret, true);
+            var options={
+                method:"DELETE",
+                uri:this.baseUrl + '/v1.0/deleteFolder',
+                body: {
+                    path: model.Path
+                },
+                json:true
             }
+            return await request.delete(options, function (err, res, body) {
+                if (res.statusCode == 200) {
+                    return body;
+                } else {
+                    throw new Error("Delete Folder failed. Status code: " + res.statusCode + "; Error(s):" + JSON.stringify(body.errors));
+                }
+            }).auth(this.apiKey, this.apiSecret, true);
         } catch (error) {
             throw error;
         }
     }
 
 
-    public DeleteFile(model: Models.DeleteFileRequestModel) {
+    public DeleteImage(model: Models.DeleteImageRequest) {
         try {
-            return this.DeleteFileAsync(model).then(response => {
+            return this.DeleteImageAsync(model).then(response => {
                 return JSON.parse(String(response));
             }).catch(exception => {
                 throw exception;
@@ -157,26 +168,31 @@ export class Image4ioAPI {
             throw exception;
         }
     }
-    private async DeleteFileAsync(model: Models.DeleteFileRequestModel) {
+    private async DeleteImageAsync(model: Models.DeleteImageRequest) {
         try {
-            if (model.Name == null || !model.Name.trim()) {
-                throw new Error("Folder path is required.")
-            } else {
-                return await request.delete(this.baseUrl + '/v0.1/deletefile?name=' + model.Name, function (err, res, body) {
-                    if (res.statusCode == 200) {
-                        return;
-                    } else {
-                        throw new Error("JSON Parse failed.")
-                    }
-                }).auth(this.apiKey, this.apiSecret, true);
+            var options={
+                method:"DELETE",
+                uri:this.baseUrl + '/v1.0/deleteImage',
+                body: {
+                    path: model.Name
+                },
+                json:true
             }
+
+            return await request.delete(options, function (err, res, body) {
+                if (res.statusCode == 200) {
+                    return body;
+                } else {
+                    throw new Error("Delete Image failed. Status code: " + res.statusCode + "; Error(s):" + JSON.stringify(body.errors));
+                }
+            }).auth(this.apiKey, this.apiSecret, true);
         } catch (error) {
             throw error;
         }
     }
 
 
-    public CreateFolder(model: Models.CreateFolderRequestModel) {
+    public CreateFolder(model: Models.CreateFolderRequest) {
         try {
             return this.CreateFolderAsync(model).then(response => {
                 return JSON.parse(String(response));
@@ -187,27 +203,32 @@ export class Image4ioAPI {
             throw exception;
         }
     }
-    private async CreateFolderAsync(model: Models.CreateFolderRequestModel) {
+    private async CreateFolderAsync(model: Models.CreateFolderRequest) {
         try {
-            if (model.Path == null || !model.Path.trim()) {
-                throw new Error("Folder path is required.")
-            } else {
-                return await request.post(this.baseUrl + '/v0.1/CreateFolder?path=' + model.Path, function (err, res, body) {
-                    if (res.statusCode == 200) {
-                        return;
-                    } else {
-                        throw new Error("JSON Parse failed.")
-                    }
-                }).auth(this.apiKey, this.apiSecret, true);
+            var options={
+                method:"POST",
+                uri:this.baseUrl + '/v1.0/createFolder',
+                body: {
+                    path: model.Path
+                },
+                json:true
             }
+
+            return await request.post(options, function (err, res, body) {
+                if (res.statusCode == 200) {
+                    return body;
+                } else {
+                    throw new Error("Create Folder failed. Status code: " + res.statusCode + "; Error(s):" + JSON.stringify(body.errors));
+                }
+            }).auth(this.apiKey, this.apiSecret, true);
         } catch (error) {
             throw error;
         }
     }
 
-    public Fetch(model: Models.FetchRequestModel) {
+    public FetchImage(model: Models.FetchImageRequest) {
         try {
-            return this.FetchAsync(model).then(response => {
+            return this.FetchImageAsync(model).then(response => {
                 return JSON.parse(String(response));
             }).catch(exception => {
                 throw exception;
@@ -216,27 +237,32 @@ export class Image4ioAPI {
             throw exception;
         }
     }
-    private async FetchAsync(model: Models.FetchRequestModel) {
+    private async FetchImageAsync(model: Models.FetchImageRequest) {
         try {
-            if (model.From == null || !model.From.trim()) {
-                throw new Error("From parameter is required.")
-            } else if (model.TargetPath == null || !model.TargetPath.trim()) {
-                throw new Error("Target path parameter is required.")
-            } else {
-                return await request.post(this.baseUrl + '/v0.1/fetch?from=' + model.From + "&target_path=" + model.TargetPath, function (err, res, body) {
-                    if (res.statusCode == 200) {
-                        return;
-                    } else {
-                        throw new Error("JSON Parse failed.")
-                    }
-                }).auth(this.apiKey, this.apiSecret, true);
+            var options={
+                method:"POST",
+                uri:this.baseUrl + '/v1.0/fetchImage',
+                body: {
+                    from:model.From,
+                    targetPath:model.TargetPath,
+                    useFilename:model.UseFilename
+                },
+                json:true
             }
+
+            return await request.post(options, function (err, res, body) {
+                if (res.statusCode == 200) {
+                    return body;
+                } else {
+                    throw new Error("Fetch Image failed. Status code: " + res.statusCode + "; Error(s):" + JSON.stringify(body.errors));
+                }
+            }).auth(this.apiKey, this.apiSecret, true);
         } catch (error) {
             throw error;
         }
     }
 
-    public ListFolder(model: Models.ListFolderRequestModel) {
+    public ListFolder(model: Models.ListFolderRequest) {
         try {
             return this.ListFolderAsync(model).then(response => {
                 return JSON.parse(String(response));
@@ -247,27 +273,33 @@ export class Image4ioAPI {
             throw exception;
         }
     }
-    private async ListFolderAsync(model: Models.ListFolderRequestModel) {
+    private async ListFolderAsync(model: Models.ListFolderRequest) {
         try {
-            if (model.Path == null || !model.Path.trim()) {
-                throw new Error("Path parameter is required.")
-            } else {
-                return await request.get(this.baseUrl + '/v0.1/listfolder?path=' + model.Path, function (err, res, body) {
-                    if (res.statusCode == 200) {
-                        return;
-                    } else {
-                        throw new Error("JSON Parse failed.")
-                    }
-                }).auth(this.apiKey, this.apiSecret, true);
+            var options={
+                method:"GET",
+                uri:this.baseUrl + '/v1.0/listFolder',
+                body: {
+                    from:model.Path,
+                    continuationToken: model.ContinuationToken
+                },
+                json:true
             }
+
+            return await request.get(options, function (err, res, body) {
+                if (res.statusCode == 200) {
+                    return body;
+                } else {
+                    throw new Error("List Folder failed. Status code: " + res.statusCode + "; Error(s):" + JSON.stringify(body.errors));
+                }
+            }).auth(this.apiKey, this.apiSecret, true);
         } catch (error) {
             throw error;
         }
     }
 
-    public Move(model: Models.MoveRequestModel) {
+    public MoveImage(model: Models.MoveImageRequest) {
         try {
-            return this.MoveAsync(model).then(response => {
+            return this.MoveImageAsync(model).then(response => {
                 return JSON.parse(String(response));
             }).catch(exception => {
                 throw exception;
@@ -276,21 +308,265 @@ export class Image4ioAPI {
             throw exception;
         }
     }
-    private async MoveAsync(model: Models.MoveRequestModel) {
+    private async MoveImageAsync(model: Models.MoveImageRequest) {
         try {
-            if (model.Source == null || !model.Source.trim()) {
-                throw new Error("Source parameter is required.")
-            } else if (model.TargetPath == null || !model.TargetPath.trim()) {
-                throw new Error("Target path is required.")
-            } else {
-                return await request.put(this.baseUrl + '/v0.1/move?source=' + model.Source + "&target_path=" + model.TargetPath, function (err, res, body) {
-                    if (res.statusCode == 200) {
-                        return;
-                    } else {
-                        throw new Error("JSON Parse failed.")
-                    }
-                }).auth(this.apiKey, this.apiSecret, true);
+
+            var options={
+                method:"PUT",
+                uri:this.baseUrl + '/v1.0/moveImage',
+                body: {
+                    source:model.Source,
+                    targetPath:model.TargetPath
+                },
+                json:true
             }
+
+            return await request.put(options, function (err, res, body) {
+                if (res.statusCode == 200) {
+                    return body;
+                } else {
+                    throw new Error("Move Image failed. Status code: " + res.statusCode + "; Error(s):" + JSON.stringify(body.errors));
+                }
+            }).auth(this.apiKey, this.apiSecret, true);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    public Purge(model: Models.PurgeRequest) {
+        try {
+            return this.PurgeAsync(model).then(response => {
+                return JSON.parse(String(response));
+            }).catch(exception => {
+                throw exception;
+            });
+        } catch (exception) {
+            throw exception;
+        }
+    }
+    private async PurgeAsync(model: Models.PurgeRequest) {
+        try {
+
+            var options={
+                method:"DELETE",
+                uri:this.baseUrl + '/v1.0/purge',
+                body: {
+                    path:model.Path
+                },
+                json:true
+            }
+
+            return await request.delete(options, function (err, res, body) {
+                if (res.statusCode == 200) {
+                    return body;
+                } else {
+                    throw new Error("Purge Request failed. Status code: " + res.statusCode + "; Error(s):" + JSON.stringify(body.errors));
+                }
+            }).auth(this.apiKey, this.apiSecret, true);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    public GetSubscription() {
+        try {
+            return this.GetSubscriptionAsync().then(response => {
+                return JSON.parse(String(response));
+            }).catch(exception => {
+                throw exception;
+            });
+        } catch (exception) {
+            throw exception;
+        }
+    }
+    private async GetSubscriptionAsync() {
+        try {
+
+            var options={
+                method:"GET",
+                uri:this.baseUrl + '/v1.0/subscription',
+                json:true
+            }
+
+            return await request.get(options, function (err, res, body) {
+                if (res.statusCode == 200) {
+                    return body;
+                } else {
+                    throw new Error("Purge Request failed. Status code: " + res.statusCode + "; Error(s):" + JSON.stringify(body.errors));
+                }
+            }).auth(this.apiKey, this.apiSecret, true);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    public StartUploadStream(model: Models.StartUploadStreamRequest) {
+        try {
+            return this.StartUploadStreamAsync(model).then(response => {
+                return JSON.parse(String(response));
+            }).catch(exception => {
+                throw exception;
+            });
+        } catch (exception) {
+            throw exception;
+        }
+    }
+    private async StartUploadStreamAsync(model: Models.StartUploadStreamRequest) {
+        try {
+            var options={
+                method:"POST",
+                uri:this.baseUrl + '/v1.0/uploadStream',
+                body: {
+                    path: model.Path,
+                    filename:model.Filename
+                },
+                json:true
+            }
+
+            return await request.post(options, function (err, res, body) {
+                if (res.statusCode == 200) {
+                    return body;
+                } else {
+                    throw new Error("Start Upload Stream failed. Status code: " + res.statusCode + "; Error(s):" + JSON.stringify(body.errors));
+                }
+            }).auth(this.apiKey, this.apiSecret, true);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+
+    public UploadStreamPart(model: Models.UploadStreamPartRequest) {
+        try {
+            return this.UploadStreamPartAsync(model).then(response => {
+                return JSON.parse(String(response));
+            }).catch(exception => {
+                throw exception;
+            });
+        } catch (exception) {
+            throw exception;
+        }
+    }
+    private async UploadStreamPartAsync(model: Models.UploadStreamPartRequest) {
+        try {
+            var formData = {
+                filename: model.Filename,
+                partId : model.PartId,
+                token: model.Token,
+                part: model.Part,
+            };
+
+            return await request.patch({ url: this.baseUrl + '/v1.0/uploadStream', formData: formData }, function (err, res, body) {
+                if (res.statusCode == 200) {
+                    return body;
+                } else {
+                    throw new Error("Upload stream part failed. Status code: " + res.statusCode + "; Error(s):" + JSON.stringify(body.errors));
+                }
+            }).auth(this.apiKey, this.apiSecret, true);
+            
+        } catch (exception) {
+            throw exception;
+        }
+    }
+
+    public FinalizeStream(model: Models.FinalizeStreamRequest) {
+        try {
+            return this.FinalizeStreamAsync(model).then(response => {
+                return JSON.parse(String(response));
+            }).catch(exception => {
+                throw exception;
+            });
+        } catch (exception) {
+            throw exception;
+        }
+    }
+    private async FinalizeStreamAsync(model: Models.FinalizeStreamRequest) {
+        try {
+            var options={
+                method:"POST",
+                uri:this.baseUrl + '/v1.0/finalizeStream',
+                body: {
+                    filename:model.Filename,
+                    token: model.Token
+                },
+                json:true
+            }
+
+            return await request.post(options, function (err, res, body) {
+                if (res.statusCode == 200) {
+                    return body;
+                } else {
+                    throw new Error("Finalize Stream failed. Status code: " + res.statusCode + "; Error(s):" + JSON.stringify(body.errors));
+                }
+            }).auth(this.apiKey, this.apiSecret, true);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    public GetStreams(model: Models.GetStreamsRequest) {
+        try {
+            return this.GetStreamsAsync(model).then(response => {
+                return JSON.parse(String(response));
+            }).catch(exception => {
+                throw exception;
+            });
+        } catch (exception) {
+            throw exception;
+        }
+    }
+    private async GetStreamsAsync(model: Models.GetStreamsRequest) {
+        try {
+            var options={
+                method:"GET",
+                uri:this.baseUrl + '/v1.0/streams',
+                body: {
+                    names: model.Names
+                },
+                json:true
+            }
+            return await request.get(options, function (err, res, body) {
+                if (res.statusCode == 200) {
+                    return body;
+                } else {
+                    throw new Error("Get Streams failed. Status code: " + res.statusCode + "; Error(s):" + JSON.stringify(body.errors));
+                }
+
+            }).auth(this.apiKey, this.apiSecret, true);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    public DeleteStream(model: Models.DeleteStreamRequest) {
+        try {
+            return this.DeleteStreamAsync(model).then(response => {
+                return JSON.parse(String(response));
+            }).catch(exception => {
+                throw exception;
+            });
+        } catch (exception) {
+            throw exception;
+        }
+    }
+    private async DeleteStreamAsync(model: Models.DeleteStreamRequest) {
+        try {
+            var options={
+                method:"DELETE",
+                uri:this.baseUrl + '/v1.0/deleteStream',
+                body: {
+                    path: model.Name
+                },
+                json:true
+            }
+
+            return await request.delete(options, function (err, res, body) {
+                if (res.statusCode == 200) {
+                    return body;
+                } else {
+                    throw new Error("Delete Stream failed. Status code: " + res.statusCode + "; Error(s):" + JSON.stringify(body.errors));
+                }
+            }).auth(this.apiKey, this.apiSecret, true);
         } catch (error) {
             throw error;
         }
