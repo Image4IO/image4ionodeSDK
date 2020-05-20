@@ -3,6 +3,7 @@ export { default as CreateFolderRequest } from "./CreateFolderRequest";
 export { default as DeleteImageRequest } from "./DeleteImageRequest";
 export { default as DeleteFolderRequest } from "./DeleteFolderRequest";
 export { default as FetchImageRequest } from "./FetchImageRequest";
+export { default as FetchStreamRequest } from "./FetchStreamRequest";
 export { default as GetImagesRequest } from "./GetImagesRequest";
 export { default as ListFolderRequest } from "./ListFolderRequest";
 export { default as MoveImageRequest } from "./MoveImageRequest";

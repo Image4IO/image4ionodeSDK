@@ -1,12 +1,12 @@
-export default class FetchImageRequestModel {
+export default class FetchStreamRequestModel {
     private from: string = "";
     private targetPath: string = "";
-    private useFilename: boolean=false;
+    private filename: string="";
 
-    constructor(from: string, targetPath: string, useFilename:boolean) {
+    constructor(from: string, targetPath: string, filename:string) {
         this.from = from;
         this.targetPath = targetPath;
-        this.useFilename=useFilename;
+        this.filename=filename;
     }
 
     public get From(): string {
@@ -17,8 +17,8 @@ export default class FetchImageRequestModel {
         return this.targetPath;
     }
 
-    public get UseFilename():boolean{
-        return this.useFilename;
+    public get Filename():string{
+        return this.filename;
     }
 
 }

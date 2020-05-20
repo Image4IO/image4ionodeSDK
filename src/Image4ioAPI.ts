@@ -262,6 +262,42 @@ export class Image4ioClient {
         }
     }
 
+    public FetchStream(model: Models.FetchStreamRequest) {
+        try {
+            return this.FetchStreamAsync(model).then(response => {
+                return JSON.parse(String(response));
+            }).catch(exception => {
+                throw exception;
+            });
+        } catch (exception) {
+            throw exception;
+        }
+    }
+    private async FetchStreamAsync(model: Models.FetchStreamRequest) {
+        try {
+            var options={
+                method:"POST",
+                uri:this.baseUrl + '/v1.0/fetchStream',
+                body: {
+                    from:model.From,
+                    targetPath:model.TargetPath,
+                    filename:model.Filename
+                },
+                json:true
+            }
+
+            return await request.post(options, function (err, res, body) {
+                if (res.statusCode == 200) {
+                    return body;
+                } else {
+                    throw new Error("Fetch Stream failed. Status code: " + res.statusCode + "; Error(s):" + JSON.stringify(body.errors));
+                }
+            }).auth(this.apiKey, this.apiSecret, true);
+        } catch (error) {
+            throw error;
+        }
+    }
+
     public ListFolder(model: Models.ListFolderRequest) {
         try {
             return this.ListFolderAsync(model).then(response => {
