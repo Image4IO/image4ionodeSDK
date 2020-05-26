@@ -89,9 +89,9 @@ export class Image4ioClient {
         }
     }
 
-    public GetImages(model: Models.GetImagesRequest) {
+    public GetImage(model: Models.GetImageRequest) {
         try {
-            return this.GetImagesAsync(model).then(response => {
+            return this.GetImageAsync(model).then(response => {
                 return JSON.parse(String(response));
             }).catch(exception => {
                 throw exception;
@@ -100,13 +100,13 @@ export class Image4ioClient {
             throw exception;
         }
     }
-    private async GetImagesAsync(model: Models.GetImagesRequest) {
+    private async GetImageAsync(model: Models.GetImageRequest) {
         try {
             var options={
                 method:"GET",
-                uri:this.baseUrl + '/v1.0/images',
-                body: {
-                    names: model.Names
+                uri:this.baseUrl + '/v1.0/image',
+                qs: {
+                    name: model.Name
                 },
                 json:true
             }
@@ -114,7 +114,7 @@ export class Image4ioClient {
                 if (res.statusCode == 200) {
                     return body;
                 } else {
-                    throw new Error("Get Images failed. Status code: " + res.statusCode + "; Error(s):" + JSON.stringify(body.errors));
+                    throw new Error("Get Image failed. Status code: " + res.statusCode + "; Error(s):" + JSON.stringify(body.errors));
                 }
 
             }).auth(this.apiKey, this.apiSecret, true);
@@ -314,8 +314,8 @@ export class Image4ioClient {
             var options={
                 method:"GET",
                 uri:this.baseUrl + '/v1.0/listFolder',
-                body: {
-                    from:model.Path,
+                qs: {
+                    path:model.Path,
                     continuationToken: model.ContinuationToken
                 },
                 json:true
@@ -540,9 +540,9 @@ export class Image4ioClient {
         }
     }
 
-    public GetStreams(model: Models.GetStreamsRequest) {
+    public GetStream(model: Models.GetStreamRequest) {
         try {
-            return this.GetStreamsAsync(model).then(response => {
+            return this.GetStreamAsync(model).then(response => {
                 return JSON.parse(String(response));
             }).catch(exception => {
                 throw exception;
@@ -551,13 +551,13 @@ export class Image4ioClient {
             throw exception;
         }
     }
-    private async GetStreamsAsync(model: Models.GetStreamsRequest) {
+    private async GetStreamAsync(model: Models.GetStreamRequest) {
         try {
             var options={
                 method:"GET",
-                uri:this.baseUrl + '/v1.0/streams',
-                body: {
-                    names: model.Names
+                uri:this.baseUrl + '/v1.0/stream',
+                qs: {
+                    names: model.Name
                 },
                 json:true
             }
