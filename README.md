@@ -4,7 +4,7 @@
 ![altText](https://img.shields.io/github/license/Image4IO/image4ionodeSDK "License") ![altText](https://img.shields.io/github/languages/top/Image4IO/image4ionodeSDK "Lang")
 
 # Image4ioNodeSDK 
-image4io is a cloud service where your images are uploaded, moved, copied, fetched, deleted.
+image4io is a full stack image manager that stores, optimizes and delivers for websites and mobile applications. This is the Nodejs SDK for image4io API.
 
 ## Configuration
 To send requests to API, APIKey and APISecret must be given as string first. Required keys can be retrieved from image4io console.
@@ -17,24 +17,32 @@ var apiSecret = 'apiSecret';
 var api = new Image4ioAPI.Image4ioAPI(apiKey, apiSecret);
 ```
 ## Available Requests
-This SDK currently supports 9 requests.
-* GetImageDetails
-* UploadFiles
-* Fetch
-* CopyFile
-* MoveFile
-* ListFolder
+This SDK currently supports 16 requests.
+
+* GetSubscription
+* GetImage
+* UploadImage
+* FetchImage
+* CopyImage
+* MoveImage
+* DeleteImage
 * CreateFolder
-* DeleteFile
-* Delete Folder
+* DeleteFolder
+* ListFolder
+* StartUploadStream
+* UploadStreamPart
+* FinalizeStream
+* GetStream
+* FetchStream
+* DeleteStream
 
 Documentation is available at: [image4io API Documentation](https://image4.io/en/documentation)
 
 ## Usage
 ### Default Usage
-With Image4io, it is very straightforward to do an operation on your images. GetImageDetail example can be seen below.
+With Image4io, it is very straightforward to do an operation on your images. GetImage example can be seen below.
 ```javascript
-var getRes = api.GetImageDetails(new Models.GetImageDetailsRequestModel("/test.png"));
+var getRes = api.GetImage(new Models.GetImageRequest("/folderName/test.png"));
 getRes.then(response => {
     //Response returns a JSON object, which can be accessed here
 }).catch(error => {

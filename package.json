@@ -1,6 +1,6 @@
 {
   "name": "@image4io/image4ionodejssdk",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "description": "Node.js SDK for image4.io",
   "main": "out/Image4ioAPI.js",
   "scripts": {
@@ -12,7 +12,7 @@
   "types": "out/Image4ioAPI.d.ts",
   "prepare": "npm run build",
   "prepublish": "tsc",
-  "author": "Atakan Atamert",
+  "author": "Gökhan Koçyiğit, Atakan Atamert",
   "license": "MIT",
   "keywords": [
     "image4io",

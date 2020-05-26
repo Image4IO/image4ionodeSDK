@@ -471,7 +471,6 @@ export class Image4ioClient {
         }
     }
 
-
     public UploadStreamPart(model: Models.UploadStreamPartRequest) {
         try {
             return this.UploadStreamPartAsync(model).then(response => {
