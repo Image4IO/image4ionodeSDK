@@ -369,9 +369,9 @@ export class Image4ioClient {
         }
     }
 
-    public Purge(model: Models.PurgeRequest) {
+    public Purge() {
         try {
-            return this.PurgeAsync(model).then(response => {
+            return this.PurgeAsync().then(response => {
                 return JSON.parse(String(response));
             }).catch(exception => {
                 throw exception;
@@ -380,15 +380,12 @@ export class Image4ioClient {
             throw exception;
         }
     }
-    private async PurgeAsync(model: Models.PurgeRequest) {
+    private async PurgeAsync() {
         try {
 
             var options={
                 method:"DELETE",
                 uri:this.baseUrl + '/v1.0/purge',
-                body: {
-                    path:model.Path
-                },
                 json:true
             }
 

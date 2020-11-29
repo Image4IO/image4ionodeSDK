@@ -8,7 +8,6 @@ export { default as GetImageRequest } from "./GetImageRequest";
 export { default as ListFolderRequest } from "./ListFolderRequest";
 export { default as MoveImageRequest } from "./MoveImageRequest";
 export { default as UploadImagesRequest } from "./UploadImagesRequest";
-export { default as PurgeRequest } from "./PurgeRequest";
 export { default as StartUploadStreamRequest } from "./StartUploadStreamRequest"
 export { default as UploadStreamPartRequest } from "./UploadStreamPartRequest"
 export { default as FinalizeStreamRequest } from "./FinalizeStreamRequest"
