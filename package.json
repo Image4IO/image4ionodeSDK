@@ -2,14 +2,15 @@
   "name": "@image4io/image4ionodejssdk",
   "version": "1.0.2",
   "description": "Node.js SDK for image4.io",
-  "main": "out/Image4ioAPI.js",
+  "main": "out/index.js",
   "scripts": {
+    "prepare": "npm run build",
     "tsc": "tsc",
     "dev": "nodemon index.js",
     "test": "mocha ./out/Test.js",
     "build": "tsc"
   },
-  "types": "out/Image4ioAPI.d.ts",
+  "types": "out/index.d.ts",
   "prepare": "npm run build",
   "prepublish": "tsc",
   "author": "Gökhan Koçyiğit, Atakan Atamert",
@@ -28,6 +29,9 @@
     "@types/form-data": "^2.5.0",
     "@types/node": "^12.12.12",
     "@types/request": "^2.48.3",
+    "axios": "^0.21.1",
+    "form-data": "^3.0.0",
+    "qs": "^6.9.4",
     "request-promise": "^4.2.5"
   },
   "devDependencies": {
@@ -47,6 +51,6 @@
   },
   "homepage": "https://image4.io/en",
   "files": [
-    "out /**/*"
+    "out"
   ]
 }

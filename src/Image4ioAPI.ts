@@ -1,22 +1,27 @@
-import * as request from 'request-promise';
 import * as Models from './Models';
-import { createReadStream } from 'fs';
+import * as axios from 'axios';
+import * as https from 'https';
+import * as qs from 'querystring';
+import * as fs from 'fs';
+const FormData = require('form-data');
 
 export class Image4ioClient {
-    public baseUrl: string = "https://api.image4.io";
+    public baseUrl: string = "https://api.image4.io/v1.0";
     public upload: Object = {};
     public apiKey: string = "";
     public apiSecret: string = "";
+    private client=axios.default;
+    private agent=new https.Agent({ keepAlive: true});
 
     constructor(apiKey: string, apiSecret: string) {
         this.apiKey = apiKey;
         this.apiSecret = apiSecret;
     }
-
+    
     public UploadImage(model: Models.UploadImagesRequest) {
         try {
             return this.UploadImageAsync(model).then(response => {
-                return JSON.parse(String(response));
+                return response.data;
             }).catch(exception => {
                 throw exception;
             });
@@ -26,24 +31,25 @@ export class Image4ioClient {
     }
     private async UploadImageAsync(model: Models.UploadImagesRequest) {
         try {
-            var formData = {
-                files: Array(),
-                path : model.Path,
-                overwrite: String(model.Overwrite),
-                useFilename: String(model.UseFilename),
-            };
-
+            let formData=new FormData();
+            formData.append("path",model.Path);
+            formData.append("overwrite",String(model.Overwrite))
+            formData.append("useFilename",String(model.UseFilename))
             model.Files.forEach(file => {
-                formData.files.push(createReadStream(file.Data));
+                formData.append("files",fs.readFileSync(file.FilePath),file.FileName)
             });
 
-            return await request.post({ url: this.baseUrl + '/v1.0/uploadImage', formData: formData }, function (err, res, body) {
-                if (res.statusCode == 200) {
-                    return body;
-                } else {
-                    throw new Error("Upload image failed. Status code: " + res.statusCode + "; Error(s):" + JSON.stringify(body.errors));
-                }
-            }).auth(this.apiKey, this.apiSecret, true);
+            return await this.client.post(this.baseUrl+"/uploadImage",formData.getBuffer(),{
+                httpsAgent:this.agent,
+                headers:{
+                    ...formData.getHeaders()
+                },
+                auth:{
+                    username:this.apiKey,
+                    password:this.apiSecret
+                },
+                responseType:'json'
+            })
         } catch (error) {
             throw error;
         }
@@ -53,7 +59,7 @@ export class Image4ioClient {
     public CopyImage(model: Models.CopyImageRequest) {
         try {
             return this.CopyImageAsync(model).then(response => {
-                return JSON.parse(String(response));
+                return response.data;
             }).catch(exception => {
                 throw exception;
             });
@@ -63,27 +69,22 @@ export class Image4ioClient {
     }
     private async CopyImageAsync(model: Models.CopyImageRequest) {
         try {
-            
-            var options={
-                method:"PUT",
-                uri:this.baseUrl + '/v1.0/copyImage',
-                body: {
-                    source: model.Source,
-                    targetPath : model.TargetPath,
-                    name:model.Name,
-                    useFilename:model.UseFilename,
-                    overwrite:model.Overwrite
-                },
-                json:true
+            var formData={
+                source: model.Source,
+                targetPath : model.TargetPath,
+                name:model.Name,
+                useFilename:model.UseFilename,
+                overwrite:model.Overwrite
             }
 
-            return await request.put(options, function (err, res, body) {
-                if (res.statusCode == 200) {
-                    return body;
-                } else {
-                    throw new Error("Copy image failed. Status code: " + res.statusCode + "; Error(s):" + JSON.stringify(body.errors));
-                }
-            }).auth(this.apiKey, this.apiSecret, true);
+            return await this.client.put(this.baseUrl+"/copyImage",formData,{
+                httpsAgent:this.agent,
+                auth:{
+                    username:this.apiKey,
+                    password:this.apiSecret
+                },
+                responseType:'json'
+            });
         } catch (error) {
             throw error;
         }
@@ -92,7 +93,7 @@ export class Image4ioClient {
     public GetImage(model: Models.GetImageRequest) {
         try {
             return this.GetImageAsync(model).then(response => {
-                return JSON.parse(String(response));
+                return response.data;
             }).catch(exception => {
                 throw exception;
             });
@@ -102,22 +103,17 @@ export class Image4ioClient {
     }
     private async GetImageAsync(model: Models.GetImageRequest) {
         try {
-            var options={
-                method:"GET",
-                uri:this.baseUrl + '/v1.0/image',
-                qs: {
-                    name: model.Name
+            var querystring= qs.stringify({
+                name:model.Name
+            })
+            return await this.client.get(this.baseUrl+"/image?"+querystring,{
+                httpsAgent: this.agent,
+                auth:{
+                    username:this.apiKey,
+                    password:this.apiSecret
                 },
-                json:true
-            }
-            return await request.get(options, function (err, res, body) {
-                if (res.statusCode == 200) {
-                    return body;
-                } else {
-                    throw new Error("Get Image failed. Status code: " + res.statusCode + "; Error(s):" + JSON.stringify(body.errors));
-                }
-
-            }).auth(this.apiKey, this.apiSecret, true);
+                responseType:"json"
+            })
         } catch (error) {
             throw error;
         }
@@ -126,7 +122,7 @@ export class Image4ioClient {
     public DeleteFolder(model: Models.DeleteFolderRequest) {
         try {
             return this.DeleteFolderAsync(model).then(response => {
-                return JSON.parse(String(response));
+                return response.data;
             }).catch(exception => {
                 throw exception;
             });
@@ -136,21 +132,19 @@ export class Image4ioClient {
     }
     private async DeleteFolderAsync(model: Models.DeleteFolderRequest) {
         try {
-            var options={
-                method:"DELETE",
-                uri:this.baseUrl + '/v1.0/deleteFolder',
-                body: {
-                    path: model.Path
-                },
-                json:true
+            let formData={
+                path:model.Path
             }
-            return await request.delete(options, function (err, res, body) {
-                if (res.statusCode == 200) {
-                    return body;
-                } else {
-                    throw new Error("Delete Folder failed. Status code: " + res.statusCode + "; Error(s):" + JSON.stringify(body.errors));
-                }
-            }).auth(this.apiKey, this.apiSecret, true);
+
+            return await this.client.delete(this.baseUrl+"/deleteFolder",{
+                httpsAgent:this.agent,
+                data:formData,
+                auth:{
+                    username:this.apiKey,
+                    password:this.apiSecret
+                },
+                responseType:'json'
+            })
         } catch (error) {
             throw error;
         }
@@ -160,7 +154,7 @@ export class Image4ioClient {
     public DeleteImage(model: Models.DeleteImageRequest) {
         try {
             return this.DeleteImageAsync(model).then(response => {
-                return JSON.parse(String(response));
+                return response.data;
             }).catch(exception => {
                 throw exception;
             });
@@ -170,22 +164,19 @@ export class Image4ioClient {
     }
     private async DeleteImageAsync(model: Models.DeleteImageRequest) {
         try {
-            var options={
-                method:"DELETE",
-                uri:this.baseUrl + '/v1.0/deleteImage',
-                body: {
-                    path: model.Name
-                },
-                json:true
+            let formData={
+                name:model.Name
             }
 
-            return await request.delete(options, function (err, res, body) {
-                if (res.statusCode == 200) {
-                    return body;
-                } else {
-                    throw new Error("Delete Image failed. Status code: " + res.statusCode + "; Error(s):" + JSON.stringify(body.errors));
-                }
-            }).auth(this.apiKey, this.apiSecret, true);
+            return await this.client.delete(this.baseUrl+"/deleteFolder",{
+                httpsAgent:this.agent,
+                data:formData,
+                auth:{
+                    username:this.apiKey,
+                    password:this.apiSecret
+                },
+                responseType:'json'
+            })
         } catch (error) {
             throw error;
         }
@@ -195,7 +186,7 @@ export class Image4ioClient {
     public CreateFolder(model: Models.CreateFolderRequest) {
         try {
             return this.CreateFolderAsync(model).then(response => {
-                return JSON.parse(String(response));
+                return response.data;
             }).catch(exception => {
                 throw exception;
             });
@@ -205,22 +196,18 @@ export class Image4ioClient {
     }
     private async CreateFolderAsync(model: Models.CreateFolderRequest) {
         try {
-            var options={
-                method:"POST",
-                uri:this.baseUrl + '/v1.0/createFolder',
-                body: {
-                    path: model.Path
-                },
-                json:true
+            var formData={
+                path:model.Path
             }
 
-            return await request.post(options, function (err, res, body) {
-                if (res.statusCode == 200) {
-                    return body;
-                } else {
-                    throw new Error("Create Folder failed. Status code: " + res.statusCode + "; Error(s):" + JSON.stringify(body.errors));
-                }
-            }).auth(this.apiKey, this.apiSecret, true);
+            return await this.client.post(this.baseUrl+"/createFolder",formData,{
+                httpsAgent:this.agent,
+                auth:{
+                    username:this.apiKey,
+                    password:this.apiSecret
+                },
+                responseType:'json'
+            });
         } catch (error) {
             throw error;
         }
@@ -229,7 +216,7 @@ export class Image4ioClient {
     public FetchImage(model: Models.FetchImageRequest) {
         try {
             return this.FetchImageAsync(model).then(response => {
-                return JSON.parse(String(response));
+                return response.data;
             }).catch(exception => {
                 throw exception;
             });
@@ -239,24 +226,20 @@ export class Image4ioClient {
     }
     private async FetchImageAsync(model: Models.FetchImageRequest) {
         try {
-            var options={
-                method:"POST",
-                uri:this.baseUrl + '/v1.0/fetchImage',
-                body: {
-                    from:model.From,
-                    targetPath:model.TargetPath,
-                    useFilename:model.UseFilename
-                },
-                json:true
+            var formData={
+                from:model.From,
+                targetPath : model.TargetPath,
+                useFilename:model.UseFilename,
             }
 
-            return await request.post(options, function (err, res, body) {
-                if (res.statusCode == 200) {
-                    return body;
-                } else {
-                    throw new Error("Fetch Image failed. Status code: " + res.statusCode + "; Error(s):" + JSON.stringify(body.errors));
-                }
-            }).auth(this.apiKey, this.apiSecret, true);
+            return await this.client.post(this.baseUrl+"/fetchImage",formData,{
+                httpsAgent:this.agent,
+                auth:{
+                    username:this.apiKey,
+                    password:this.apiSecret
+                },
+                responseType:'json'
+            });
         } catch (error) {
             throw error;
         }
@@ -265,7 +248,7 @@ export class Image4ioClient {
     public FetchStream(model: Models.FetchStreamRequest) {
         try {
             return this.FetchStreamAsync(model).then(response => {
-                return JSON.parse(String(response));
+                return response.data;
             }).catch(exception => {
                 throw exception;
             });
@@ -275,24 +258,20 @@ export class Image4ioClient {
     }
     private async FetchStreamAsync(model: Models.FetchStreamRequest) {
         try {
-            var options={
-                method:"POST",
-                uri:this.baseUrl + '/v1.0/fetchStream',
-                body: {
-                    from:model.From,
-                    targetPath:model.TargetPath,
-                    filename:model.Filename
-                },
-                json:true
+            var formData={
+                from:model.From,
+                targetPath : model.TargetPath,
+                filename:model.Filename
             }
 
-            return await request.post(options, function (err, res, body) {
-                if (res.statusCode == 200) {
-                    return body;
-                } else {
-                    throw new Error("Fetch Stream failed. Status code: " + res.statusCode + "; Error(s):" + JSON.stringify(body.errors));
-                }
-            }).auth(this.apiKey, this.apiSecret, true);
+            return await this.client.post(this.baseUrl+"/fetchStream",formData,{
+                httpsAgent:this.agent,
+                auth:{
+                    username:this.apiKey,
+                    password:this.apiSecret
+                },
+                responseType:'json'
+            });
         } catch (error) {
             throw error;
         }
@@ -301,7 +280,7 @@ export class Image4ioClient {
     public ListFolder(model: Models.ListFolderRequest) {
         try {
             return this.ListFolderAsync(model).then(response => {
-                return JSON.parse(String(response));
+                return response.data;
             }).catch(exception => {
                 throw exception;
             });
@@ -311,23 +290,18 @@ export class Image4ioClient {
     }
     private async ListFolderAsync(model: Models.ListFolderRequest) {
         try {
-            var options={
-                method:"GET",
-                uri:this.baseUrl + '/v1.0/listFolder',
-                qs: {
-                    path:model.Path,
-                    continuationToken: model.ContinuationToken
+            var querystring= qs.stringify({
+                path:model.Path,
+                continuationToken: model.ContinuationToken
+            })
+            return await this.client.get(this.baseUrl+"/listFolder?"+querystring,{
+                httpsAgent: this.agent,
+                auth:{
+                    username:this.apiKey,
+                    password:this.apiSecret
                 },
-                json:true
-            }
-
-            return await request.get(options, function (err, res, body) {
-                if (res.statusCode == 200) {
-                    return body;
-                } else {
-                    throw new Error("List Folder failed. Status code: " + res.statusCode + "; Error(s):" + JSON.stringify(body.errors));
-                }
-            }).auth(this.apiKey, this.apiSecret, true);
+                responseType:"json"
+            })
         } catch (error) {
             throw error;
         }
@@ -336,7 +310,7 @@ export class Image4ioClient {
     public MoveImage(model: Models.MoveImageRequest) {
         try {
             return this.MoveImageAsync(model).then(response => {
-                return JSON.parse(String(response));
+                return response.data;
             }).catch(exception => {
                 throw exception;
             });
@@ -346,24 +320,19 @@ export class Image4ioClient {
     }
     private async MoveImageAsync(model: Models.MoveImageRequest) {
         try {
-
-            var options={
-                method:"PUT",
-                uri:this.baseUrl + '/v1.0/moveImage',
-                body: {
-                    source:model.Source,
-                    targetPath:model.TargetPath
-                },
-                json:true
+            var formData={
+                source: model.Source,
+                targetPath : model.TargetPath,
             }
 
-            return await request.put(options, function (err, res, body) {
-                if (res.statusCode == 200) {
-                    return body;
-                } else {
-                    throw new Error("Move Image failed. Status code: " + res.statusCode + "; Error(s):" + JSON.stringify(body.errors));
-                }
-            }).auth(this.apiKey, this.apiSecret, true);
+            return await this.client.put(this.baseUrl+"/moveImage",formData,{
+                httpsAgent:this.agent,
+                auth:{
+                    username:this.apiKey,
+                    password:this.apiSecret
+                },
+                responseType:'json'
+            });
         } catch (error) {
             throw error;
         }
@@ -372,7 +341,7 @@ export class Image4ioClient {
     public Purge() {
         try {
             return this.PurgeAsync().then(response => {
-                return JSON.parse(String(response));
+                return response.data;
             }).catch(exception => {
                 throw exception;
             });
@@ -382,20 +351,14 @@ export class Image4ioClient {
     }
     private async PurgeAsync() {
         try {
-
-            var options={
-                method:"DELETE",
-                uri:this.baseUrl + '/v1.0/purge',
-                json:true
-            }
-
-            return await request.delete(options, function (err, res, body) {
-                if (res.statusCode == 200) {
-                    return body;
-                } else {
-                    throw new Error("Purge Request failed. Status code: " + res.statusCode + "; Error(s):" + JSON.stringify(body.errors));
-                }
-            }).auth(this.apiKey, this.apiSecret, true);
+            return await this.client.delete(this.baseUrl+"/purge",{
+                httpsAgent:this.agent,
+                auth:{
+                    username:this.apiKey,
+                    password:this.apiSecret
+                },
+                responseType:'json'
+            });
         } catch (error) {
             throw error;
         }
@@ -404,7 +367,7 @@ export class Image4ioClient {
     public GetSubscription() {
         try {
             return this.GetSubscriptionAsync().then(response => {
-                return JSON.parse(String(response));
+                return response.data;
             }).catch(exception => {
                 throw exception;
             });
@@ -414,20 +377,14 @@ export class Image4ioClient {
     }
     private async GetSubscriptionAsync() {
         try {
-
-            var options={
-                method:"GET",
-                uri:this.baseUrl + '/v1.0/subscription',
-                json:true
-            }
-
-            return await request.get(options, function (err, res, body) {
-                if (res.statusCode == 200) {
-                    return body;
-                } else {
-                    throw new Error("Purge Request failed. Status code: " + res.statusCode + "; Error(s):" + JSON.stringify(body.errors));
-                }
-            }).auth(this.apiKey, this.apiSecret, true);
+            return await this.client.get(this.baseUrl+"/subscription",{
+                httpsAgent: this.agent,
+                auth:{
+                    username:this.apiKey,
+                    password:this.apiSecret
+                },
+                responseType:"json"
+            })
         } catch (error) {
             throw error;
         }
@@ -436,7 +393,7 @@ export class Image4ioClient {
     public StartUploadStream(model: Models.StartUploadStreamRequest) {
         try {
             return this.StartUploadStreamAsync(model).then(response => {
-                return JSON.parse(String(response));
+                return response.data;
             }).catch(exception => {
                 throw exception;
             });
@@ -446,23 +403,19 @@ export class Image4ioClient {
     }
     private async StartUploadStreamAsync(model: Models.StartUploadStreamRequest) {
         try {
-            var options={
-                method:"POST",
-                uri:this.baseUrl + '/v1.0/uploadStream',
-                body: {
-                    path: model.Path,
-                    filename:model.Filename
-                },
-                json:true
+            var formData={
+                path: model.Path,
+                filename:model.Filename
             }
 
-            return await request.post(options, function (err, res, body) {
-                if (res.statusCode == 200) {
-                    return body;
-                } else {
-                    throw new Error("Start Upload Stream failed. Status code: " + res.statusCode + "; Error(s):" + JSON.stringify(body.errors));
-                }
-            }).auth(this.apiKey, this.apiSecret, true);
+            return await this.client.post(this.baseUrl+"/uploadStream",formData,{
+                httpsAgent:this.agent,
+                auth:{
+                    username:this.apiKey,
+                    password:this.apiSecret
+                },
+                responseType:'json'
+            });
         } catch (error) {
             throw error;
         }
@@ -471,7 +424,11 @@ export class Image4ioClient {
     public UploadStreamPart(model: Models.UploadStreamPartRequest) {
         try {
             return this.UploadStreamPartAsync(model).then(response => {
-                return JSON.parse(String(response));
+                if(response.status==202){
+                    return true;
+                }else{
+                    return response.data
+                }
             }).catch(exception => {
                 throw exception;
             });
@@ -481,20 +438,22 @@ export class Image4ioClient {
     }
     private async UploadStreamPartAsync(model: Models.UploadStreamPartRequest) {
         try {
-            var formData = {
-                filename: model.Filename,
-                partId : model.PartId,
-                token: model.Token,
-                part: model.Part,
-            };
-
-            return await request.patch({ url: this.baseUrl + '/v1.0/uploadStream', formData: formData }, function (err, res, body) {
-                if (res.statusCode == 200) {
-                    return body;
-                } else {
-                    throw new Error("Upload stream part failed. Status code: " + res.statusCode + "; Error(s):" + JSON.stringify(body.errors));
-                }
-            }).auth(this.apiKey, this.apiSecret, true);
+            let formData=new FormData();
+            formData.append("filename",model.Filename);
+            formData.append("partId",model.PartId);
+            formData.append("part",model.Part);
+            formData.append("token",model.Token);
+            return await this.client.patch(this.baseUrl+"/uploadStream",formData.getBuffer(),{
+                httpsAgent:this.agent,
+                headers:{
+                    ...formData.getHeaders()
+                },
+                auth:{
+                    username:this.apiKey,
+                    password:this.apiSecret
+                },
+                responseType:'json'
+            });
             
         } catch (exception) {
             throw exception;
@@ -504,7 +463,7 @@ export class Image4ioClient {
     public FinalizeStream(model: Models.FinalizeStreamRequest) {
         try {
             return this.FinalizeStreamAsync(model).then(response => {
-                return JSON.parse(String(response));
+                return response.data;
             }).catch(exception => {
                 throw exception;
             });
@@ -514,23 +473,19 @@ export class Image4ioClient {
     }
     private async FinalizeStreamAsync(model: Models.FinalizeStreamRequest) {
         try {
-            var options={
-                method:"POST",
-                uri:this.baseUrl + '/v1.0/finalizeStream',
-                body: {
-                    filename:model.Filename,
-                    token: model.Token
-                },
-                json:true
+            var formData={
+                filename: model.Filename,
+                token : model.Token
             }
 
-            return await request.post(options, function (err, res, body) {
-                if (res.statusCode == 200) {
-                    return body;
-                } else {
-                    throw new Error("Finalize Stream failed. Status code: " + res.statusCode + "; Error(s):" + JSON.stringify(body.errors));
-                }
-            }).auth(this.apiKey, this.apiSecret, true);
+            return await this.client.post(this.baseUrl+"/finalizeStream",formData,{
+                httpsAgent:this.agent,
+                auth:{
+                    username:this.apiKey,
+                    password:this.apiSecret
+                },
+                responseType:'json'
+            });
         } catch (error) {
             throw error;
         }
@@ -539,7 +494,7 @@ export class Image4ioClient {
     public GetStream(model: Models.GetStreamRequest) {
         try {
             return this.GetStreamAsync(model).then(response => {
-                return JSON.parse(String(response));
+                return response.data;
             }).catch(exception => {
                 throw exception;
             });
@@ -549,22 +504,17 @@ export class Image4ioClient {
     }
     private async GetStreamAsync(model: Models.GetStreamRequest) {
         try {
-            var options={
-                method:"GET",
-                uri:this.baseUrl + '/v1.0/stream',
-                qs: {
-                    names: model.Name
+            var querystring= qs.stringify({
+                name:model.Name
+            })
+            return await this.client.get(this.baseUrl+"/stream?"+querystring,{
+                httpsAgent: this.agent,
+                auth:{
+                    username:this.apiKey,
+                    password:this.apiSecret
                 },
-                json:true
-            }
-            return await request.get(options, function (err, res, body) {
-                if (res.statusCode == 200) {
-                    return body;
-                } else {
-                    throw new Error("Get Streams failed. Status code: " + res.statusCode + "; Error(s):" + JSON.stringify(body.errors));
-                }
-
-            }).auth(this.apiKey, this.apiSecret, true);
+                responseType:"json"
+            })
         } catch (error) {
             throw error;
         }
@@ -573,7 +523,7 @@ export class Image4ioClient {
     public DeleteStream(model: Models.DeleteStreamRequest) {
         try {
             return this.DeleteStreamAsync(model).then(response => {
-                return JSON.parse(String(response));
+                return response.data;
             }).catch(exception => {
                 throw exception;
             });
@@ -583,22 +533,19 @@ export class Image4ioClient {
     }
     private async DeleteStreamAsync(model: Models.DeleteStreamRequest) {
         try {
-            var options={
-                method:"DELETE",
-                uri:this.baseUrl + '/v1.0/deleteStream',
-                body: {
-                    path: model.Name
-                },
-                json:true
+            let formData={
+                name:model.Name
             }
 
-            return await request.delete(options, function (err, res, body) {
-                if (res.statusCode == 200) {
-                    return body;
-                } else {
-                    throw new Error("Delete Stream failed. Status code: " + res.statusCode + "; Error(s):" + JSON.stringify(body.errors));
-                }
-            }).auth(this.apiKey, this.apiSecret, true);
+            return await this.client.post(this.baseUrl+"/deleteStream",{
+                httpsAgent:this.agent,
+                data:formData,
+                auth:{
+                    username:this.apiKey,
+                    password:this.apiSecret
+                },
+                responseType:'json'
+            })
         } catch (error) {
             throw error;
         }
