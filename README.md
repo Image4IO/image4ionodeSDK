@@ -76,6 +76,9 @@ Image4io team is always ready to support you, feel free to
 * [Twitter](https://twitter.com/image4io)
 
 * [LinkedIn]( linkedin.com/company/image4io/)
-
+## Contribute 
+1) You can build the library with ``` npm run build ```
+2) For testing purposes, import your local library run ``` npm install --save ..\image4ionodeSDK\ ``` and you can use it. 
+3) To contribute, please contact to us with PR or issues or email info@image4.io
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
