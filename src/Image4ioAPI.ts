@@ -168,7 +168,7 @@ export class Image4ioClient {
                 name:model.Name
             }
 
-            return await this.client.delete(this.baseUrl+"/deleteFolder",{
+            return await this.client.delete(this.baseUrl+"/deleteImage",{
                 httpsAgent:this.agent,
                 data:formData,
                 auth:{
